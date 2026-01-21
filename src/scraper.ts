@@ -50,36 +50,83 @@ export async function createContextWithCookies(
 export async function interactiveLogin(_browser?: Browser): Promise<Cookie[]> {
   console.log("Opening browser for login. Please log in to X...");
 
-  // Launch user's Chrome with their profile (includes extensions like 1Password)
-  const visibleBrowser = await chromium.launch({
-    headless: false,
-    channel: "chrome", // Use installed Chrome instead of Playwright's Chromium
-  });
-  const context = await visibleBrowser.newContext();
-  const page = await context.newPage();
+  // Try to find Chrome user data directory for persistent context
+  const home = process.env.HOME || process.env.USERPROFILE || "~";
+  const chromeUserDataDir = `${home}/Library/Application Support/Google/Chrome`;
+  const fs = require("fs");
 
-  await page.goto("https://x.com/login");
+  let context: BrowserContext;
+  let shouldCloseBrowser = false;
+  let visibleBrowser: Browser | null = null;
 
-  // Wait for user to complete login (detect home page or profile)
-  console.log("Waiting for login to complete...");
-  await page.waitForURL(/x\.com\/(home|[^/]+$)/, { timeout: 300000 }); // 5 min timeout
+  // Check if Chrome profile exists and try to use it
+  if (fs.existsSync(chromeUserDataDir)) {
+    console.log("Found Chrome profile. Using persistent context with your profile...");
+    console.log("Note: Please close Chrome if it's already running to avoid conflicts.");
 
-  console.log("Login detected. Saving cookies...");
+    try {
+      // Use launchPersistentContext to get access to the user's Chrome profile
+      context = await chromium.launchPersistentContext(chromeUserDataDir, {
+        headless: false,
+        channel: "chrome",
+        args: ["--profile-directory=Default"],
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.log(`Could not use Chrome profile (${errorMessage}). Using fresh browser...`);
+      visibleBrowser = await chromium.launch({
+        headless: false,
+        channel: "chrome",
+      });
+      context = await visibleBrowser.newContext();
+      shouldCloseBrowser = true;
+    }
+  } else {
+    // Fallback to fresh browser
+    visibleBrowser = await chromium.launch({
+      headless: false,
+      channel: "chrome",
+    });
+    context = await visibleBrowser.newContext();
+    shouldCloseBrowser = true;
+  }
 
-  const cookies = await context.cookies();
-  await context.close();
-  await visibleBrowser.close();
+  const page = context.pages()[0] || (await context.newPage());
 
-  return cookies.map((c) => ({
-    name: c.name,
-    value: c.value,
-    domain: c.domain,
-    path: c.path,
-    expires: c.expires,
-    httpOnly: c.httpOnly,
-    secure: c.secure,
-    sameSite: c.sameSite as Cookie["sameSite"],
-  }));
+  try {
+    await page.goto("https://x.com/login");
+
+    // Wait for user to complete login (detect home page or profile)
+    console.log("Waiting for login to complete...");
+    console.log("(You have 5 minutes to log in)");
+    await page.waitForURL(/x\.com\/(home|[^/]+$)/, { timeout: 300000 }); // 5 min timeout
+
+    console.log("Login detected. Saving cookies...");
+
+    const cookies = await context.cookies();
+
+    await context.close();
+    if (shouldCloseBrowser && visibleBrowser) {
+      await visibleBrowser.close();
+    }
+
+    return cookies.map((c) => ({
+      name: c.name,
+      value: c.value,
+      domain: c.domain,
+      path: c.path,
+      expires: c.expires,
+      httpOnly: c.httpOnly,
+      secure: c.secure,
+      sameSite: c.sameSite as Cookie["sameSite"],
+    }));
+  } catch (error) {
+    await context.close();
+    if (shouldCloseBrowser && visibleBrowser) {
+      await visibleBrowser.close();
+    }
+    throw error;
+  }
 }
 
 export async function scrapeArticle(
@@ -93,7 +140,7 @@ export async function scrapeArticle(
 
   try {
     if (verbose) console.log(`Navigating to: ${url}`);
-    await page.goto(url, { waitUntil: "networkidle" });
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 
     // Wait for article content to load
     await page.waitForSelector("article", { timeout: 30000 });
@@ -129,14 +176,49 @@ export async function scrapeArticle(
       };
     });
 
-    // Extract article HTML content
+    // Extract article HTML content - targeting X Article specific structure
     const articleHtml = await page.evaluate(() => {
+      // For X Articles, look for the article body content specifically
+      // X Articles have a different structure than regular tweets
+
+      // Try to find the article content container
+      const articleBody = document.querySelector('[data-testid="article-body"]');
+      if (articleBody) {
+        return articleBody.innerHTML;
+      }
+
+      // Fallback: collect all tweet text blocks (the actual content)
+      const tweetTexts = document.querySelectorAll('[data-testid="tweetText"]');
+      if (tweetTexts.length > 0) {
+        // Get all text content, filtering out the profile header area
+        const contentParts: string[] = [];
+        tweetTexts.forEach((el) => {
+          contentParts.push(el.innerHTML);
+        });
+        return contentParts.join("\n\n");
+      }
+
+      // Last resort: get article element but strip out known UI elements
       const article = document.querySelector("article");
       if (!article) return "";
 
-      // Find the main content area (usually after the header)
-      const contentArea = article.querySelector('[data-testid="tweetText"]')?.parentElement?.parentElement;
-      return contentArea?.innerHTML || article.innerHTML;
+      // Clone to avoid modifying the page
+      const clone = article.cloneNode(true) as HTMLElement;
+
+      // Remove known UI elements
+      const selectorsToRemove = [
+        '[data-testid="User-Name"]',
+        '[data-testid="UserAvatar-Container"]',
+        '[role="group"]', // engagement buttons
+        'time',
+        '[data-testid="app-text-transition-container"]', // metrics like "146", "428"
+      ];
+
+      selectorsToRemove.forEach(selector => {
+        clone.querySelectorAll(selector).forEach(el => el.remove());
+      });
+
+      return clone.innerHTML;
     });
 
     if (verbose) console.log("Parsing article content...");

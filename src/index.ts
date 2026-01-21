@@ -28,13 +28,64 @@ program
   .option("-v, --verbose", "Show detailed progress")
   .option("--login", "Force re-authentication")
   .option("--logout", "Clear stored cookies")
+  .option("--cookies-file <path>", "Import cookies from JSON file (bypasses interactive login)")
+  .option("--export-cookies-help", "Show instructions for exporting cookies from browser")
   .action(async (url: string | undefined, opts) => {
     try {
+      // Handle --export-cookies-help
+      if (opts.exportCookiesHelp) {
+        console.log(`
+How to export cookies from your browser:
+
+Option 1: Using Chrome DevTools
+1. Log in to x.com in your regular Chrome browser
+2. Open DevTools (F12 or Cmd+Option+I)
+3. Go to Application tab → Cookies → https://x.com
+4. Copy the cookies you need (especially 'auth_token', 'ct0', 'twid')
+5. Create a JSON file with this format:
+   [
+     {"name": "auth_token", "value": "YOUR_VALUE", "domain": ".x.com", "path": "/"},
+     {"name": "ct0", "value": "YOUR_VALUE", "domain": ".x.com", "path": "/"},
+     {"name": "twid", "value": "YOUR_VALUE", "domain": ".x.com", "path": "/"}
+   ]
+6. Run: x-article --cookies-file cookies.json <url>
+
+Option 2: Using a browser extension
+1. Install "EditThisCookie" or "Cookie-Editor" extension
+2. Log in to x.com
+3. Click the extension and export cookies as JSON
+4. Save to a file and run: x-article --cookies-file cookies.json <url>
+
+Option 3: Using browser console
+1. Log in to x.com in your browser
+2. Open DevTools Console (F12)
+3. Run: copy(document.cookie.split(';').map(c => {
+     const [name, value] = c.trim().split('=');
+     return {name, value, domain: '.x.com', path: '/'};
+   }))
+4. Paste into a JSON file and use with --cookies-file
+`);
+        return;
+      }
+
       // Handle --logout
       if (opts.logout) {
         clearCookies();
         console.log("Cookies cleared.");
         return;
+      }
+
+      // Handle --cookies-file (import cookies from file)
+      if (opts.cookiesFile) {
+        try {
+          const cookiesJson = fs.readFileSync(opts.cookiesFile, "utf-8");
+          const importedCookies = JSON.parse(cookiesJson);
+          saveCookies(importedCookies);
+          console.log(`Imported ${importedCookies.length} cookies from ${opts.cookiesFile}`);
+        } catch (err) {
+          console.error(`Error reading cookies file: ${err instanceof Error ? err.message : err}`);
+          process.exit(1);
+        }
       }
 
       // Handle --login
@@ -47,13 +98,20 @@ program
         if (!url) return;
       }
 
-      // Require URL for download
-      if (!url) {
+      // Require URL for download (unless just importing cookies)
+      if (!url && !opts.cookiesFile) {
         console.error("Error: URL is required");
         console.log("Usage: x-article <url> [options]");
         console.log("       x-article --login");
         console.log("       x-article --logout");
+        console.log("       x-article --cookies-file <path>");
+        console.log("       x-article --export-cookies-help");
         process.exit(1);
+      }
+
+      // If only importing cookies without URL, we're done
+      if (!url && opts.cookiesFile) {
+        return;
       }
 
       // Validate URL

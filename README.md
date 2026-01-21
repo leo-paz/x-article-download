@@ -14,6 +14,9 @@ bun install
 # Download an article
 bun run src/index.ts https://x.com/username/article/123456
 
+# Also works with status URLs
+bun run src/index.ts https://x.com/username/status/123456
+
 # With custom output directory
 bun run src/index.ts https://x.com/username/article/123456 -o ~/archive
 
@@ -23,11 +26,8 @@ bun run src/index.ts https://x.com/username/article/123456 --no-media
 # Verbose output
 bun run src/index.ts https://x.com/username/article/123456 -v
 
-# Force re-login
-bun run src/index.ts --login
-
-# Clear saved session
-bun run src/index.ts --logout
+# Output as JSON instead of markdown
+bun run src/index.ts https://x.com/username/article/123456 --format json
 ```
 
 ## Options
@@ -42,6 +42,8 @@ bun run src/index.ts --logout
 | `-v, --verbose` | Show detailed progress |
 | `--login` | Force re-authentication |
 | `--logout` | Clear stored cookies |
+| `--cookies-file <path>` | Import cookies from JSON file |
+| `--export-cookies-help` | Show instructions for exporting cookies |
 
 ## Output Structure
 
@@ -54,11 +56,80 @@ articles/
         └── 2.png
 ```
 
+The markdown file includes YAML frontmatter with metadata:
+
+```yaml
+---
+title: "Article Title"
+author: username
+author_url: https://x.com/username
+date: 2025-01-21T12:00:00.000Z
+url: https://x.com/username/article/123456
+downloaded_at: 2025-01-21T12:00:00.000Z
+---
+```
+
 ## Authentication
 
-On first run, a browser window opens for you to log in to X. Cookies are saved to `~/.x-article/cookies.json` for subsequent runs.
+X.com requires authentication to access articles. There are several ways to authenticate:
 
-You can also set the `X_AUTH_COOKIES` environment variable with JSON-encoded cookies.
+### Option 1: Manual Cookie Import (Recommended)
+
+X.com blocks automated logins, so the most reliable method is to manually export cookies from your browser:
+
+1. Log in to x.com in your regular browser
+2. Open DevTools (F12 or Cmd+Option+I)
+3. Go to **Console** tab and run:
+   ```javascript
+   copy(JSON.stringify(document.cookie.split(';').map(c => {
+     const [name, ...rest] = c.trim().split('=');
+     return {name, value: rest.join('='), domain: '.x.com', path: '/'};
+   }), null, 2))
+   ```
+4. Create a `cookies.json` file and paste the result
+5. **Important:** The `auth_token` cookie is HttpOnly and won't be included above. You need to add it manually:
+   - Go to **Application** tab → **Cookies** → **https://x.com**
+   - Find `auth_token` and copy its value
+   - Add it to your cookies.json:
+     ```json
+     {"name": "auth_token", "value": "YOUR_VALUE", "domain": ".x.com", "path": "/"}
+     ```
+6. Import the cookies:
+   ```bash
+   bun run src/index.ts --cookies-file cookies.json
+   ```
+
+For more detailed instructions, run:
+```bash
+bun run src/index.ts --export-cookies-help
+```
+
+### Option 2: Interactive Login
+
+On first run without cookies, a browser window opens for you to log in:
+
+```bash
+bun run src/index.ts --login
+```
+
+**Note:** X.com may block automated browser logins. If you see "Could not log you in now", use the manual cookie import method instead.
+
+### Option 3: Environment Variable
+
+Set the `X_AUTH_COOKIES` environment variable with JSON-encoded cookies:
+
+```bash
+export X_AUTH_COOKIES='[{"name":"auth_token","value":"...","domain":".x.com","path":"/"}]'
+```
+
+### Cookie Storage
+
+Cookies are saved to `~/.x-article/cookies.json` after successful authentication and reused for subsequent runs.
+
+To clear saved cookies:
+```bash
+bun run src/index.ts --logout
+```
 
 ## Development
 
@@ -69,3 +140,7 @@ bun test
 # Run with verbose output
 bun run src/index.ts <url> -v
 ```
+
+## License
+
+MIT
