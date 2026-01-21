@@ -16,7 +16,7 @@ const program = new Command();
 program
   .name("clipmd")
   .description("Clip web content to clean markdown files")
-  .version("0.1.1");
+  .version("0.1.2");
 
 program
   .argument("[url]", "X article URL to download")

@@ -83,30 +83,20 @@ X.com blocks automated logins, so the most reliable method is to manually export
 
 1. Log in to x.com in your regular browser
 2. Open DevTools (F12 or Cmd+Option+I)
-3. Go to **Console** tab and run:
-   ```javascript
-   copy(JSON.stringify(document.cookie.split(';').map(c => {
-     const [name, ...rest] = c.trim().split('=');
-     return {name, value: rest.join('='), domain: '.x.com', path: '/'};
-   }), null, 2))
+3. Go to **Application** tab → **Cookies** → **https://x.com**
+4. Create a `cookies.json` file with these cookies:
+   ```json
+   [
+     {"name": "auth_token", "value": "YOUR_VALUE", "domain": ".x.com", "path": "/"},
+     {"name": "ct0", "value": "YOUR_VALUE", "domain": ".x.com", "path": "/"}
+   ]
    ```
-4. Create a `cookies.json` file and paste the result
-5. **Important:** The `auth_token` cookie is HttpOnly and won't be included above. You need to add it manually:
-   - Go to **Application** tab → **Cookies** → **https://x.com**
-   - Find `auth_token` and copy its value
-   - Add it to your cookies.json:
-     ```json
-     {"name": "auth_token", "value": "YOUR_VALUE", "domain": ".x.com", "path": "/"}
-     ```
-6. Import the cookies:
+5. Import the cookies:
    ```bash
    clipmd --cookies-file cookies.json
    ```
 
-For more detailed instructions, run:
-```bash
-clipmd --export-cookies-help
-```
+**Tip:** Use a browser extension like "Cookie-Editor" or "EditThisCookie" to export all cookies as JSON directly.
 
 ### Option 2: Interactive Login
 
