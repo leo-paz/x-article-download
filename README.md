@@ -1,33 +1,37 @@
-# x-article-download
+# clipmd
 
-Download X (Twitter) Articles to markdown files with metadata and media.
+Clip web content to clean markdown files with metadata and media.
 
 ## Installation
 
 ```bash
-bun install
+# Run directly with bunx
+bunx clipmd <url>
+
+# Or install globally
+bun add -g clipmd
 ```
 
 ## Usage
 
 ```bash
-# Download an article
-bun run src/index.ts https://x.com/username/article/123456
+# Clip an article
+clipmd https://x.com/username/article/123456
 
 # Also works with status URLs
-bun run src/index.ts https://x.com/username/status/123456
+clipmd https://x.com/username/status/123456
 
 # With custom output directory
-bun run src/index.ts https://x.com/username/article/123456 -o ~/archive
+clipmd https://x.com/username/article/123456 -o ~/archive
 
 # Skip media download
-bun run src/index.ts https://x.com/username/article/123456 --no-media
+clipmd https://x.com/username/article/123456 --no-media
 
 # Verbose output
-bun run src/index.ts https://x.com/username/article/123456 -v
+clipmd https://x.com/username/article/123456 -v
 
 # Output as JSON instead of markdown
-bun run src/index.ts https://x.com/username/article/123456 --format json
+clipmd https://x.com/username/article/123456 --format json
 ```
 
 ## Options
@@ -96,12 +100,12 @@ X.com blocks automated logins, so the most reliable method is to manually export
      ```
 6. Import the cookies:
    ```bash
-   bun run src/index.ts --cookies-file cookies.json
+   clipmd --cookies-file cookies.json
    ```
 
 For more detailed instructions, run:
 ```bash
-bun run src/index.ts --export-cookies-help
+clipmd --export-cookies-help
 ```
 
 ### Option 2: Interactive Login
@@ -109,35 +113,34 @@ bun run src/index.ts --export-cookies-help
 On first run without cookies, a browser window opens for you to log in:
 
 ```bash
-bun run src/index.ts --login
+clipmd --login
 ```
 
 **Note:** X.com may block automated browser logins. If you see "Could not log you in now", use the manual cookie import method instead.
 
-### Option 3: Environment Variable
-
-Set the `X_AUTH_COOKIES` environment variable with JSON-encoded cookies:
-
-```bash
-export X_AUTH_COOKIES='[{"name":"auth_token","value":"...","domain":".x.com","path":"/"}]'
-```
-
 ### Cookie Storage
 
-Cookies are saved to `~/.x-article/cookies.json` after successful authentication and reused for subsequent runs.
+Cookies are saved to `~/.clipmd/cookies.json` after successful authentication and reused for subsequent runs.
 
 To clear saved cookies:
 ```bash
-bun run src/index.ts --logout
+clipmd --logout
 ```
 
 ## Development
 
 ```bash
+# Clone the repo
+git clone https://github.com/leo-paz/clipmd.git
+cd clipmd
+
+# Install dependencies
+bun install
+
 # Run tests
 bun test
 
-# Run with verbose output
+# Run locally
 bun run src/index.ts <url> -v
 ```
 

@@ -23,7 +23,7 @@ export function isValidXArticleUrl(url: string): boolean {
 
 export function getConfigDir(): string {
   const home = process.env.HOME || process.env.USERPROFILE || "~";
-  return `${home}/.x-article`;
+  return `${home}/.clipmd`;
 }
 
 export function ensureDir(path: string): void {
