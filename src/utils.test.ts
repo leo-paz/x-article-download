@@ -29,8 +29,12 @@ describe("isValidXArticleUrl", () => {
     expect(isValidXArticleUrl("https://twitter.com/user/article/123")).toBe(true);
   });
 
-  test("rejects non-article URLs", () => {
-    expect(isValidXArticleUrl("https://x.com/user/status/123")).toBe(false);
+  test("accepts valid x.com status URL", () => {
+    expect(isValidXArticleUrl("https://x.com/user/status/123")).toBe(true);
+  });
+
+  test("rejects profile URLs", () => {
+    expect(isValidXArticleUrl("https://x.com/user")).toBe(false);
   });
 
   test("rejects invalid domains", () => {

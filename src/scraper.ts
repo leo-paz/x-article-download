@@ -47,10 +47,15 @@ export async function createContextWithCookies(
   return context;
 }
 
-export async function interactiveLogin(browser: Browser): Promise<Cookie[]> {
+export async function interactiveLogin(_browser?: Browser): Promise<Cookie[]> {
   console.log("Opening browser for login. Please log in to X...");
 
-  const context = await browser.newContext();
+  // Launch user's Chrome with their profile (includes extensions like 1Password)
+  const visibleBrowser = await chromium.launch({
+    headless: false,
+    channel: "chrome", // Use installed Chrome instead of Playwright's Chromium
+  });
+  const context = await visibleBrowser.newContext();
   const page = await context.newPage();
 
   await page.goto("https://x.com/login");
@@ -63,6 +68,7 @@ export async function interactiveLogin(browser: Browser): Promise<Cookie[]> {
 
   const cookies = await context.cookies();
   await context.close();
+  await visibleBrowser.close();
 
   return cookies.map((c) => ({
     name: c.name,

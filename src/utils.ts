@@ -14,7 +14,8 @@ export function isValidXArticleUrl(url: string): boolean {
     const parsed = new URL(url);
     const validHosts = ["x.com", "twitter.com", "www.x.com", "www.twitter.com"];
     if (!validHosts.includes(parsed.hostname)) return false;
-    return /^\/[^/]+\/article\/\d+/.test(parsed.pathname);
+    // Accept both /article/ and /status/ URLs
+    return /^\/[^/]+\/(article|status)\/\d+/.test(parsed.pathname);
   } catch {
     return false;
   }
