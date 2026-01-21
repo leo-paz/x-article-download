@@ -1,10 +1,10 @@
 {
-  "name": "x-article-download",
+  "name": "clipmd",
   "version": "0.1.0",
-  "description": "CLI tool to download X (Twitter) Articles to markdown files",
+  "description": "CLI tool to clip web content to clean markdown files",
   "type": "module",
   "bin": {
-    "x-article": "./src/index.ts"
+    "clipmd": "./src/index.ts"
   },
   "files": [
     "src"
@@ -14,24 +14,25 @@
     "test": "bun test"
   },
   "keywords": [
-    "x",
-    "twitter",
-    "article",
+    "clip",
+    "markdown",
+    "web",
+    "content",
     "download",
     "scraper",
-    "markdown",
     "cli",
-    "bun"
+    "bun",
+    "inspiration"
   ],
   "author": "Leo <omarleopaz@hotmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/leo-paz/x-article-download.git"
+    "url": "git+https://github.com/leo-paz/clipmd.git"
   },
-  "homepage": "https://github.com/leo-paz/x-article-download#readme",
+  "homepage": "https://github.com/leo-paz/clipmd#readme",
   "bugs": {
-    "url": "https://github.com/leo-paz/x-article-download/issues"
+    "url": "https://github.com/leo-paz/clipmd/issues"
   },
   "engines": {
     "bun": ">=1.0.0"

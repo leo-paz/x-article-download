@@ -14,8 +14,8 @@ import type { CliOptions } from "./types";
 const program = new Command();
 
 program
-  .name("x-article")
-  .description("Download X Articles to markdown files")
+  .name("clipmd")
+  .description("Clip web content to clean markdown files")
   .version("0.1.0");
 
 program
@@ -48,13 +48,13 @@ Option 1: Using Chrome DevTools
      {"name": "ct0", "value": "YOUR_VALUE", "domain": ".x.com", "path": "/"},
      {"name": "twid", "value": "YOUR_VALUE", "domain": ".x.com", "path": "/"}
    ]
-6. Run: x-article --cookies-file cookies.json <url>
+6. Run: clipmd --cookies-file cookies.json <url>
 
 Option 2: Using a browser extension
 1. Install "EditThisCookie" or "Cookie-Editor" extension
 2. Log in to x.com
 3. Click the extension and export cookies as JSON
-4. Save to a file and run: x-article --cookies-file cookies.json <url>
+4. Save to a file and run: clipmd --cookies-file cookies.json <url>
 
 Option 3: Using browser console
 1. Log in to x.com in your browser
@@ -101,11 +101,11 @@ Option 3: Using browser console
       // Require URL for download (unless just importing cookies)
       if (!url && !opts.cookiesFile) {
         console.error("Error: URL is required");
-        console.log("Usage: x-article <url> [options]");
-        console.log("       x-article --login");
-        console.log("       x-article --logout");
-        console.log("       x-article --cookies-file <path>");
-        console.log("       x-article --export-cookies-help");
+        console.log("Usage: clipmd <url> [options]");
+        console.log("       clipmd --login");
+        console.log("       clipmd --logout");
+        console.log("       clipmd --cookies-file <path>");
+        console.log("       clipmd --export-cookies-help");
         process.exit(1);
       }
 
