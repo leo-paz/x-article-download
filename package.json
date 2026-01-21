@@ -1,13 +1,40 @@
 {
   "name": "x-article-download",
   "version": "0.1.0",
+  "description": "CLI tool to download X (Twitter) Articles to markdown files",
   "type": "module",
   "bin": {
     "x-article": "./src/index.ts"
   },
+  "files": [
+    "src"
+  ],
   "scripts": {
     "start": "bun run src/index.ts",
     "test": "bun test"
+  },
+  "keywords": [
+    "x",
+    "twitter",
+    "article",
+    "download",
+    "scraper",
+    "markdown",
+    "cli",
+    "bun"
+  ],
+  "author": "Leo <omarleopaz@hotmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leo-paz/x-article-download.git"
+  },
+  "homepage": "https://github.com/leo-paz/x-article-download#readme",
+  "bugs": {
+    "url": "https://github.com/leo-paz/x-article-download/issues"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
   },
   "dependencies": {
     "commander": "^12.0.0",
