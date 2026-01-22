@@ -16,22 +16,22 @@ bun add -g clipmd
 
 ```bash
 # Clip an article
-clipmd https://x.com/username/article/123456
+bunx clipmd https://x.com/username/article/123456
 
 # Also works with status URLs
-clipmd https://x.com/username/status/123456
+bunx clipmd https://x.com/username/status/123456
 
 # With custom output directory
-clipmd https://x.com/username/article/123456 -o ~/archive
+bunx clipmd https://x.com/username/article/123456 -o ~/archive
 
 # Skip media download
-clipmd https://x.com/username/article/123456 --no-media
+bunx clipmd https://x.com/username/article/123456 --no-media
 
 # Verbose output
-clipmd https://x.com/username/article/123456 -v
+bunx clipmd https://x.com/username/article/123456 -v
 
 # Output as JSON instead of markdown
-clipmd https://x.com/username/article/123456 --format json
+bunx clipmd https://x.com/username/article/123456 --format json
 ```
 
 ## Options
@@ -93,7 +93,7 @@ X.com blocks automated logins, so the most reliable method is to manually export
    ```
 5. Import the cookies:
    ```bash
-   clipmd --cookies-file cookies.json
+   bunx clipmd --cookies-file cookies.json
    ```
 
 **Tip:** Use a browser extension like "Cookie-Editor" or "EditThisCookie" to export all cookies as JSON directly.
@@ -103,7 +103,7 @@ X.com blocks automated logins, so the most reliable method is to manually export
 On first run without cookies, a browser window opens for you to log in:
 
 ```bash
-clipmd --login
+bunx clipmd --login
 ```
 
 **Note:** X.com may block automated browser logins. If you see "Could not log you in now", use the manual cookie import method instead.
@@ -114,7 +114,7 @@ Cookies are saved to `~/.clipmd/cookies.json` after successful authentication an
 
 To clear saved cookies:
 ```bash
-clipmd --logout
+bunx clipmd --logout
 ```
 
 ## Development
